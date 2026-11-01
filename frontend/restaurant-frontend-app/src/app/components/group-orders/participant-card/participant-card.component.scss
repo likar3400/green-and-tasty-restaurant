@@ -1,0 +1,138 @@
+@use 'app/shared/styles/abstracts/colors' as color;
+
+:host {
+  display: block;
+}
+
+.card {
+  box-sizing: border-box;
+  padding: 16px;
+  background: color.$neutral-0;
+  border-radius: 12px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.title {
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 28px;
+  overflow-wrap: anywhere;
+}
+
+.chip {
+  padding: 0 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 20px;
+  white-space: nowrap;
+
+  &.submitted {
+    color: color.$green-800;
+    background: color.$green-100;
+    border: 1px solid color.$green-300;
+  }
+
+  &.pending {
+    color: color.$orange-600;
+    background: color.$orange-100;
+    border: 1px solid color.$orange-400;
+  }
+}
+
+.items {
+  list-style: none;
+}
+
+.item {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid color.$neutral-100;
+}
+
+.avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+
+  &.initial {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    color: color.$green-800;
+    background: color.$green-100;
+  }
+}
+
+.name {
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+.qty {
+  color: color.$neutral-600;
+  white-space: nowrap;
+}
+
+.price {
+  min-width: 56px;
+  font-weight: 500;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.empty {
+  padding: 12px 0;
+  color: color.$neutral-600;
+}
+
+.subtotal {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 12px;
+  padding-top: 8px;
+  font-size: 16px;
+  font-weight: 500;
+
+  span {
+    font-size: inherit;
+  }
+}
+
+@media (max-width: 480px) {
+  .item {
+    grid-template-columns: 40px minmax(0, 1fr) auto;
+
+    .qty {
+      grid-column: 2;
+      grid-row: 2;
+    }
+
+    .price {
+      grid-column: 3;
+      grid-row: 1 / span 2;
+    }
+  }
+}

@@ -1,0 +1,188 @@
+@use 'app/shared/styles/abstracts/colors' as color;
+
+:host {
+  display: block;
+  min-height: 100vh;
+  background: color.$neutral-100;
+}
+
+.page {
+  box-sizing: border-box;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 24px 16px 48px;
+}
+
+.header {
+  padding-bottom: 12px;
+  border-bottom: 1px solid color.$green-150;
+}
+
+.heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.title {
+  font-size: 32px;
+  line-height: 40px;
+}
+
+.status-badge {
+  padding: 0 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 24px;
+  background: color.$neutral-200;
+
+  &.sent {
+    background: color.$orange-100;
+  }
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  margin-top: 8px;
+  list-style: none;
+
+  li {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+}
+
+.sync {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+  margin: 12px 0;
+  font-size: 12px;
+
+  span {
+    font-size: inherit;
+    color: color.$neutral-600;
+  }
+
+  .sync-error {
+    color: color.$red-400;
+  }
+}
+
+.notice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding: 12px 16px;
+  background: color.$orange-30;
+  border: 1px solid color.$orange-100;
+  border-radius: 8px;
+}
+
+.participants {
+  display: grid;
+  gap: 16px;
+  list-style: none;
+}
+
+.consolidated {
+  margin-top: 24px;
+  padding: 16px;
+  background: color.$neutral-0;
+  border-radius: 12px;
+}
+
+.consolidated-title {
+  margin-bottom: 8px;
+  font-size: 18px;
+  font-weight: 500;
+}
+
+.consolidated-items {
+  list-style: none;
+
+  li {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 6px 0;
+  }
+}
+
+.muted {
+  color: color.$neutral-600;
+}
+
+.grand-total {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin: 16px 0;
+  padding-top: 12px;
+  border-top: 2px solid color.$neutral-200;
+  font-size: 28px;
+  line-height: 36px;
+
+  span {
+    font-size: inherit;
+  }
+
+  .amount {
+    font-weight: 600;
+    color: color.$green-600;
+  }
+}
+
+.submit {
+  width: 100%;
+
+  &:disabled {
+    color: color.$neutral-0;
+    background: color.$neutral-400;
+  }
+}
+
+.state {
+  padding: 32px 0;
+  text-align: center;
+
+  &--error {
+    display: grid;
+    justify-items: center;
+    gap: 16px;
+  }
+}
+
+.dialog-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.danger {
+  color: color.$red-400;
+  border-color: color.$red-400;
+
+  &:hover:not(:disabled) {
+    background-color: color.$red-30;
+  }
+}
+
+@media (max-width: 480px) {
+  .title {
+    font-size: 26px;
+    line-height: 34px;
+  }
+
+  .grand-total {
+    font-size: 22px;
+  }
+}

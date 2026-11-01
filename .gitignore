@@ -1,0 +1,35 @@
+# IDE / editor
+.idea/
+.vscode/
+*.iml
+*.code-workspace
+
+# OS
+.DS_Store
+._*
+Thumbs.db
+
+# Node
+node_modules/
+
+# Local env
+.env
+.env.local
+
+# Terraform
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+*.tfvars.json
+crash.log
+crash.*.log
+# Added for deploy
+syndicate_venv/
+AWSCLIV2.pkg
+logs/
+**/bin/
+**/obj/
+**/dist/
+**/.angular/
+**/environment.production.ts
