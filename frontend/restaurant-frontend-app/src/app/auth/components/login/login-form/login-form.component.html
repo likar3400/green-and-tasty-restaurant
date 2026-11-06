@@ -57,11 +57,23 @@
             </div>
         } @else if (unsuccessfulLogin()) {
             <div class="field-error">
-                Incorrect email or password. Try again or create an account.
+                {{ errorMessage() || 'Incorrect email or password. Try again or create an account.' }}
             </div>
         }
 
-        <a class="forgot-link" href="#" (click)="$event.preventDefault()">Forgot password?</a>
+        <button
+            class="forgot-link"
+            type="button"
+            [attr.aria-expanded]="showForgotPasswordNotice()"
+            (click)="showForgotPasswordNotice.update((visible) => !visible)"
+        >
+            Forgot password?
+        </button>
+        @if (showForgotPasswordNotice()) {
+            <div class="field-error" role="status">
+                Password reset is not available yet. Please contact the restaurant administrator for help.
+            </div>
+        }
     </label>
 
     <app-custom-button class="submit" type="submit" fullWidth [disabled]="loginForm.invalid || isLoading()">

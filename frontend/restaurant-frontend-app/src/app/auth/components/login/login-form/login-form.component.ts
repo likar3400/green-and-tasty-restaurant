@@ -1,12 +1,14 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject, output, signal, } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, output, signal } from '@angular/core';
 
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
-import { first } from 'rxjs/operators';
+import { firstValueFrom, of } from 'rxjs';
+import { catchError, filter, take, timeout } from 'rxjs/operators';
 
 import { AuthenticationService } from '@app/auth/services/authentication.service';
 import { LoginDraftService } from '@app/auth/services/login-draft.service';
 import { CustomButtonComponent } from '@app/shared/custom-components/custom-button/custom-button.component';
+import { UserModel } from '@app/auth/models/user.model';
 
 @Component({
     selector: 'app-login-form',
@@ -27,6 +29,7 @@ export class LoginFormComponent {
 
     // UI state as signals
     readonly showPassword = signal(false);
+    readonly showForgotPasswordNotice = signal(false);
     readonly isLoading = signal(false);
 
     // API/UI error state
@@ -65,11 +68,6 @@ export class LoginFormComponent {
         });
     }
 
-    private normalizeMessage(message: string | null): string | null {
-        if (!message) return null;
-        return message.replace(/try again later/gi, 'try again in 5 minutes');
-    }
-
     togglePassword() {
         this.showPassword.update((v) => !v);
     }
@@ -92,19 +90,27 @@ export class LoginFormComponent {
 
             if (!result.success) {
                 this.unsuccessfulLogin.set(true);
-                this.errorMessage.set(this.normalizeMessage(result.message || null));
+                this.errorMessage.set(result.message || 'Unable to sign in. Please try again.');
                 return;
             }
 
-            //success
             this.draftService.clear();
             this.success.emit();
 
-            this.auth.user$.pipe(first((u) => !!u)).subscribe((user) => {
-                if (user.role === 'Waiter') this.router.navigate(['/waiter-reservations']);
-                else if (user.role === 'Admin') this.router.navigate(['/reports']);
-                else this.router.navigate(['/main']);
-            });
+            const user = await firstValueFrom(
+                this.auth.user$.pipe(
+                    filter((candidate): candidate is UserModel => candidate !== null),
+                    take(1),
+                    timeout({ first: 3000 }),
+                    catchError(() => of(null))
+                )
+            );
+            if (user?.role === 'Waiter') this.router.navigate(['/waiter-reservations']);
+            else if (user?.role === 'Admin') this.router.navigate(['/reports']);
+            else this.router.navigate(['/main']);
+        } catch {
+            this.unsuccessfulLogin.set(true);
+            this.errorMessage.set('Unable to connect to the server. Please check your connection and try again.');
         } finally {
             this.isLoading.set(false);
         }

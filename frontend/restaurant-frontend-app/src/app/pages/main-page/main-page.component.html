@@ -22,6 +22,16 @@
   <div class="popular-dishes-section">
     <h2 class="section-heading">Most Popular Dishes</h2>
 
+    @if (dishesLoading) {
+      <p>Loading popular dishes...</p>
+    } @else if (dishesError) {
+      <p role="alert">
+        Popular dishes could not be loaded.
+        <button type="button" (click)="loadPopularDishes()">Try again</button>
+      </p>
+    } @else if (dishes.length === 0) {
+      <p>No popular dishes are available yet.</p>
+    } @else {
     <div class="dish-cards">
       @for (dish of dishes; track dish) {
         <a routerLink="/dish/{{ dish.id }}" routerLinkActive="router-link-active" class="dish-card">
@@ -36,17 +46,29 @@
         </a>
       }
     </div>
+    }
   </div>
 
   <!-- Locations -->
   <div class="locations-section">
     <h2 class="section-heading">Locations</h2>
 
+    @if (locationsLoading) {
+      <p>Loading locations...</p>
+    } @else if (locationsError) {
+      <p role="alert">
+        Locations could not be loaded.
+        <button type="button" (click)="loadLocations()">Try again</button>
+      </p>
+    } @else if (locations.length === 0) {
+      <p>No locations are available yet.</p>
+    } @else {
     <div class="location-cards">
       @for (location of locations; track location) {
         <app-location-card [location]="location" maxWidth="488px"></app-location-card>
       }
     </div>
+    }
   </div>
 </section>
 <!-- </div> -->

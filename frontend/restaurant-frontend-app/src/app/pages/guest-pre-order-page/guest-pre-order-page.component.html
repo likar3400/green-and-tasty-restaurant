@@ -48,7 +48,10 @@
         @if (store.menuLoading()) {
             <div class="menu-placeholder">Loading menu...</div>
         } @else if (store.menuError()) {
-            <div class="menu-placeholder">{{ store.menuError() }}</div>
+            <div class="menu-placeholder" role="alert">
+                {{ store.menuError() }}
+                <button type="button" (click)="store.loadMenu()">Try again</button>
+            </div>
         } @else if (!store.hasMenu()) {
             <div class="menu-placeholder">Menu is empty</div>
         } @else {
@@ -91,7 +94,13 @@
 
 <!-- mandatory modal: show until name is set -->
 @if (!store.guestName()) {
-<app-guest-name-modal [invite]="store.inviteVm()" (confirmed)="store.join($event)" (closed)="noop()" />
+<app-guest-name-modal
+    [invite]="store.inviteVm()"
+    [loading]="store.joinLoading()"
+    [error]="store.joinError()"
+    (confirmed)="store.join($event)"
+    (closed)="noop()"
+/>
 }
 
 <!-- cart drawer -->

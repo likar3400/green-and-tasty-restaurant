@@ -34,6 +34,10 @@ import { LoginModalComponent } from '@app/auth/components/login/login-modal/logi
 export class MainPageComponent implements OnInit {
   dishes: DishListResponse[] = [];
   locations: LocationResponse[] = [];
+  dishesLoading = true;
+  locationsLoading = true;
+  dishesError = false;
+  locationsError = false;
 
   showFeedbackModal = false;
   selectedReservationCustomer!: ReservationCustomer;
@@ -82,26 +86,46 @@ export class MainPageComponent implements OnInit {
   }
 
   loadPopularDishes(): void {
-    this.dishesService.getPopularDishes().subscribe((data) => {
-      this.dishes = data.slice(0, 4).map((dish) => ({
-        ...dish,
-        imageUrl: dish.imageUrl || 'assets/img/dish.png',
-        name: dish.name || 'Unknown Dish',
-        price: dish.price || 0,
-        weight: dish.weight || 'N/A',
-      }));
+    this.dishesLoading = true;
+    this.dishesError = false;
+    this.dishesService.getPopularDishes().subscribe({
+      next: (data) => {
+        this.dishes = data.slice(0, 4).map((dish) => ({
+          ...dish,
+          imageUrl: dish.imageUrl || 'assets/img/dish.png',
+          name: dish.name || 'Unknown Dish',
+          price: dish.price || 0,
+          weight: dish.weight || 'N/A',
+        }));
+        this.dishesLoading = false;
+      },
+      error: () => {
+        this.dishes = [];
+        this.dishesError = true;
+        this.dishesLoading = false;
+      },
     });
   }
 
   loadLocations(): void {
-    this.locationsService.getLocations().subscribe((data) => {
-      this.locations = data.slice(0, 3).map((location) => ({
-        ...location,
-        imageUrl: location.imageUrl || 'assets/img/locations/baratashvili-street-14.jpg',
-        address: location.address || 'Unknown Address',
-        totalCapacity: location.totalCapacity || 0,
-        averageOccupancy: location.averageOccupancy || 'N/A',
-      }));
+    this.locationsLoading = true;
+    this.locationsError = false;
+    this.locationsService.getLocations().subscribe({
+      next: (data) => {
+        this.locations = data.slice(0, 3).map((location) => ({
+          ...location,
+          imageUrl: location.imageUrl || 'assets/img/locations/baratashvili-street-14.jpg',
+          address: location.address || 'Unknown Address',
+          totalCapacity: location.totalCapacity || 0,
+          averageOccupancy: location.averageOccupancy || 'N/A',
+        }));
+        this.locationsLoading = false;
+      },
+      error: () => {
+        this.locations = [];
+        this.locationsError = true;
+        this.locationsLoading = false;
+      },
     });
   }
 
