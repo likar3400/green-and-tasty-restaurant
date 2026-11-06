@@ -1,6 +1,6 @@
 import { GreenTastyImageComponent } from '../green-tasty-image/green-tasty-image.component';
 
-import { Component, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectionStrategy, signal } from '@angular/core';
 import {
   FormBuilder,
   FormControl,
@@ -40,6 +40,14 @@ export class RegisterComponent implements OnInit {
 
   unsuccessfulRegistration = false;
   errorMessage: string | null = null;
+  readonly awaitingEmailConfirmation = signal(false);
+  readonly emailConfirmed = signal(false);
+  readonly registeredEmail = signal('');
+  readonly confirmationCode = new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.maxLength(128)] });
+  readonly confirmationMessage = signal<string | null>(null);
+  readonly confirmationError = signal<string | null>(null);
+  readonly confirmationLoading = signal(false);
+  readonly resendLoading = signal(false);
 
   ngOnInit(): void {
     this.initRegisterForm();
@@ -91,6 +99,11 @@ export class RegisterComponent implements OnInit {
   }
 
   async onSubmit() {
+    if (this.awaitingEmailConfirmation()) {
+      await this.confirmEmail();
+      return;
+    }
+
     if (this.registerForm.valid) {
       const registerData = this.registerForm.value;
       const result = await this.authenticationService.register(
@@ -103,10 +116,56 @@ export class RegisterComponent implements OnInit {
       this.unsuccessfulRegistration = !result.success;
       this.errorMessage = result.message || null;
       if (result.success) {
-        this.router.navigate(['/login']);
+        this.registeredEmail.set(registerData.email);
+        this.awaitingEmailConfirmation.set(true);
       }
     } else {
       console.error('Form is invalid');
+    }
+  }
+
+  async confirmEmail(): Promise<void> {
+    this.confirmationMessage.set(null);
+    this.confirmationError.set(null);
+    if (this.confirmationCode.invalid) {
+      this.confirmationCode.markAsTouched();
+      return;
+    }
+
+    this.confirmationLoading.set(true);
+    try {
+      const result = await this.authenticationService.confirmRegistration(
+        this.registeredEmail(),
+        this.confirmationCode.value,
+      );
+      if (result.success) {
+        this.emailConfirmed.set(true);
+        this.confirmationMessage.set(result.message ?? 'Email verified. You can now sign in.');
+      } else {
+        this.confirmationError.set(result.message ?? 'Unable to verify this code. Please try again.');
+      }
+    } catch {
+      this.confirmationError.set('Unable to verify this code. Please try again.');
+    } finally {
+      this.confirmationLoading.set(false);
+    }
+  }
+
+  async resendConfirmationCode(): Promise<void> {
+    this.confirmationMessage.set(null);
+    this.confirmationError.set(null);
+    this.resendLoading.set(true);
+    try {
+      const result = await this.authenticationService.resendRegistrationCode(this.registeredEmail());
+      if (result.success) {
+        this.confirmationMessage.set(result.message ?? 'If the account is awaiting email confirmation, a new code has been sent.');
+      } else {
+        this.confirmationError.set(result.message ?? 'Unable to resend the code. Please try again later.');
+      }
+    } catch {
+      this.confirmationError.set('Unable to resend the code. Please try again later.');
+    } finally {
+      this.resendLoading.set(false);
     }
   }
 }

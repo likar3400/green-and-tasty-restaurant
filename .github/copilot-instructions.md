@@ -13,7 +13,7 @@ One repo: `backend/restaurant-backend-app` (.NET 10 Lambda + API Gateway + Dynam
 - Frontend (run in `frontend/restaurant-frontend-app`, Node 22):
   `npx tsc -p tsconfig.app.json --noEmit`, `npx tsc -p tsconfig.spec.json --noEmit`,
   `npm run test:hw -- --browsers=ChromeHeadless` (homework tests, expected: all green),
-  `BACKEND_URL=https://example.com npm run build`
+  `BACKEND_URL=https://zkxblk69uj.execute-api.eu-north-1.amazonaws.com/develop npm run build`
 
 ## Homework scope (Owner group pre-order)
 - GET `/guest/groups/{id}/sessions`, GET `/reservations/{id}/guest-session-id`,
@@ -32,7 +32,7 @@ One repo: `backend/restaurant-backend-app` (.NET 10 Lambda + API Gateway + Dynam
 - Do not run `git push`, `syndicate deploy`, `terraform apply` without an explicit request.
 
 ## Deploy facts
-- Region `us-west-2`. Run `syndicate` only from `backend/restaurant-backend-app` with
+- Region `eu-north-1`. Run `syndicate` only from `backend/restaurant-backend-app` with
   `export SDCT_CONF="$(pwd)/.syndicate-config-restaurant-backend-app"` and Python 3.11.
 - AWS keys expire: check `aws sts get-caller-identity` before any deploy.
 - After deploy: `BACKEND_URL=... bash scripts/smoke-api.sh` (expects four 401 responses).

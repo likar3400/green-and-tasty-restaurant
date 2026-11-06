@@ -17,9 +17,13 @@ Response:
 `200 OK`
 ```json
 {
-    "message":"User registered and confirmed successfully"
+    "message": "A confirmation code has been sent to your email address.",
+    "requiresEmailConfirmation": true,
+    "destination": "j***@example.com"
 }
 ```
+
+The user must verify the email before signing in. Cognito sends a one-time code to the supplied email.
 
 ### `POST` /signin
 ```json
@@ -37,6 +41,55 @@ Response: `200 OK`
     "accessToken": "access token",
 }
 ```
+
+### `POST` /confirm-registration
+```json
+{
+  "email": "john_doe@mail.com",
+  "confirmationCode": "code-from-email"
+}
+```
+
+Confirms the email and adds the verified account to the Customer group. Invalid or expired codes return `400`; throttling returns `429`.
+
+### `POST` /resend-registration-code
+```json
+{
+  "email": "john_doe@mail.com"
+}
+```
+
+Returns a generic message that does not disclose whether the email is awaiting confirmation.
+
+### `POST` /forgot-password
+```json
+{
+  "email": "account@example.com"
+}
+```
+
+Returns the same response for unknown accounts and addresses without a verified email:
+```json
+{
+  "message": "If an account exists with a verified email address, password reset instructions have been sent."
+}
+```
+
+Cognito sends a one-time confirmation code to a verified recovery address. The code is not returned by the API.
+
+### `POST` /reset-password
+```json
+{
+  "email": "account@example.com",
+  "confirmationCode": "code-from-email",
+  "newPassword": "StrongPass1!"
+}
+```
+
+Requires a password of 8–16 characters containing lowercase, uppercase, numeric, and special characters.
+Expired or invalid codes return `400`; Cognito controls code expiry and single-use behavior.
+
+Operational requirements: Cognito email recovery only works for verified email addresses. Registration now uses Cognito email verification before enabling sign-in and password recovery; configure Cognito email delivery for production and apply API Gateway/WAF request throttling before exposing these public endpoints. Cognito throttling is returned as `429`.
 
 ## Feedback
 

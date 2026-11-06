@@ -7,7 +7,7 @@ info:
     name: API Support
 
 servers:
-  - url: https://eknqcvq3l1.execute-api.us-west-2.amazonaws.com/develop
+  - url: https://zkxblk69uj.execute-api.eu-north-1.amazonaws.com/develop
     description: Production environment
 
 tags:
@@ -17,6 +17,112 @@ tags:
     description: Operations for group reservations
 
 paths:
+  /confirm-registration:
+    post:
+      summary: Confirm registration using the code sent by email
+      operationId: confirmRegistration
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, confirmationCode]
+              properties:
+                email:
+                  type: string
+                  format: email
+                confirmationCode:
+                  type: string
+                  maxLength: 128
+      responses:
+        '200':
+          description: Email confirmed and account enabled
+        '400':
+          description: Invalid or expired confirmation code
+        '429':
+          description: Confirmation attempts were rate limited
+  /resend-registration-code:
+    post:
+      summary: Resend the registration email confirmation code
+      description: Returns a generic response that does not reveal whether the account is awaiting confirmation.
+      operationId: resendRegistrationCode
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email:
+                  type: string
+                  format: email
+      responses:
+        '200':
+          description: Generic response for eligible and ineligible accounts
+        '429':
+          description: Code requests were rate limited
+  /forgot-password:
+    post:
+      summary: Request a password reset code
+      description: Sends a Cognito-managed one-time code to a verified email when the account is eligible. The response does not disclose whether the email is registered.
+      operationId: forgotPassword
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email:
+                  type: string
+                  format: email
+      responses:
+        '200':
+          description: Generic response for eligible, unknown, and unverified email addresses
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          description: Invalid email or request
+        '429':
+          description: Reset request was rate limited
+        '503':
+          description: Reset service is temporarily unavailable
+  /reset-password:
+    post:
+      summary: Reset a password using its emailed confirmation code
+      operationId: resetPassword
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, confirmationCode, newPassword]
+              properties:
+                email:
+                  type: string
+                  format: email
+                confirmationCode:
+                  type: string
+                  maxLength: 128
+                newPassword:
+                  type: string
+                  minLength: 8
+                  maxLength: 16
+      responses:
+        '200':
+          description: Password reset successfully
+        '400':
+          description: Invalid, expired, or consumed code, or password does not meet requirements
+        '429':
+          description: Reset attempt was rate limited
+        '503':
+          description: Reset service is temporarily unavailable
   /guest/sessions/{guestSessionId}/dishes:
     post:
       tags:

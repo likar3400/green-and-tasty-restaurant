@@ -1,7 +1,8 @@
 resource "aws_cognito_user_pool" "backend" {
   name = "restaurant-backend-user-pool"
 
-  deletion_protection = "INACTIVE"
+  deletion_protection      = "INACTIVE"
+  auto_verified_attributes = ["email"]
 
   password_policy {
     minimum_length                   = 8
@@ -34,7 +35,8 @@ resource "aws_cognito_user_pool_client" "backend_api" {
 
   generate_secret = false
 
-  explicit_auth_flows = ["ALLOW_USER_PASSWORD_AUTH"]
+  explicit_auth_flows           = ["ALLOW_USER_PASSWORD_AUTH"]
+  prevent_user_existence_errors = "ENABLED"
 
   refresh_token_validity = 30
   auth_session_validity  = 3

@@ -77,6 +77,22 @@ export class AuthenticationService {
     });
     return await this.resolveRegisterResponse(response);
   }
+  async confirmRegistration(email: string, confirmationCode: string): Promise<LoginResult> {
+    const response = await fetch(this.baseUrl + '/confirm-registration', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, confirmationCode }),
+    });
+    return await this.resolveRegisterResponse(response);
+  }
+  async resendRegistrationCode(email: string): Promise<LoginResult> {
+    const response = await fetch(this.baseUrl + '/resend-registration-code', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    });
+    return await this.resolveRegisterResponse(response);
+  }
   signOut() {
     localStorage.removeItem('auth');
     localStorage.removeItem('user');
@@ -119,7 +135,12 @@ export class AuthenticationService {
     const body = await response.json();
     const result: LoginResult = { success: true };
     if (response.ok) {
-      return result;
+      return {
+        success: true,
+        message: body.message,
+        requiresEmailConfirmation: body.requiresEmailConfirmation,
+        destination: body.destination,
+      };
     }
     if (body.error) {
       result.success = false;

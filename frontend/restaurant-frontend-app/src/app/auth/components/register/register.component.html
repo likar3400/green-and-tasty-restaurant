@@ -14,6 +14,53 @@
       </div>
     }
 
+    @if (emailConfirmed()) {
+      <div class="response-success-message" role="status">
+        {{ confirmationMessage() }}
+        <a routerLink="/login" class="login-link">Sign in</a>
+      </div>
+    } @else if (awaitingEmailConfirmation()) {
+      <section class="email-confirmation" aria-labelledby="confirm-email-title">
+        <h1 id="confirm-email-title">Verify your email</h1>
+        <p>Enter the confirmation code sent to {{ registeredEmail() }}.</p>
+        @if (confirmationMessage()) {
+          <div class="response-success-message" role="status">{{ confirmationMessage() }}</div>
+        }
+        @if (confirmationError()) {
+          <div class="response-error-message" role="alert">{{ confirmationError() }}</div>
+        }
+        <label for="confirmationCode">
+          Confirmation code:
+          <input
+            id="confirmationCode"
+            class="default-input"
+            type="text"
+            autocomplete="one-time-code"
+            maxlength="128"
+            [formControl]="confirmationCode"
+            placeholder="Enter your confirmation code"
+          />
+        </label>
+        @if (confirmationCode.invalid && (confirmationCode.touched || confirmationCode.dirty)) {
+          <div class="error-message">Confirmation code is required.</div>
+        }
+        <app-custom-button
+          type="submit"
+          class="btn-submit"
+          [disabled]="confirmationLoading() || resendLoading()"
+        >
+          {{ confirmationLoading() ? 'Verifying…' : 'Verify email' }}
+        </app-custom-button>
+        <app-custom-button
+          type="button"
+          class="btn-submit"
+          [disabled]="confirmationLoading() || resendLoading()"
+          (click)="resendConfirmationCode()"
+        >
+          {{ resendLoading() ? 'Sending…' : 'Resend code' }}
+        </app-custom-button>
+      </section>
+    } @else {
     <div class="name">
       <label for="firstName">
         First Name:
@@ -119,6 +166,7 @@
       <a routerLink="/login" class="login-link">Login</a>
       instead
     </div>
+    }
   </form>
 
   <app-green-tasty-image></app-green-tasty-image>

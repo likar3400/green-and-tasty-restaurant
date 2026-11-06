@@ -95,16 +95,14 @@
 
     <p class="grand-total"><span>Grand Total</span><span class="amount">{{ grandTotal() | currency }}</span></p>
 
-    @if (isOpen()) {
-      <button
-        type="button"
-        class="button button--extra-large button--primary submit"
-        [disabled]="!canSubmit()"
-        (click)="openSubmitDialog()"
-      >
-        Submit Pre-Order
-      </button>
-    }
+    <button
+      type="button"
+      class="button button--extra-large button--primary submit"
+      [disabled]="!canSubmit()"
+      (click)="openSubmitDialog()"
+    >
+      Submit Pre-Order
+    </button>
   }
 
   @if (submitDialogOpen()) {

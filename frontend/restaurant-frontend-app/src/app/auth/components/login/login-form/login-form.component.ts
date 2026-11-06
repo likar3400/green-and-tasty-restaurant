@@ -29,7 +29,6 @@ export class LoginFormComponent {
 
     // UI state as signals
     readonly showPassword = signal(false);
-    readonly showForgotPasswordNotice = signal(false);
     readonly isLoading = signal(false);
 
     // API/UI error state
