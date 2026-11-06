@@ -61,19 +61,7 @@
             </div>
         }
 
-        <button
-            class="forgot-link"
-            type="button"
-            [attr.aria-expanded]="showForgotPasswordNotice()"
-            (click)="showForgotPasswordNotice.update((visible) => !visible)"
-        >
-            Forgot password?
-        </button>
-        @if (showForgotPasswordNotice()) {
-            <div class="field-error" role="status">
-                Password reset is not available yet. Please contact the restaurant administrator for help.
-            </div>
-        }
+        <a class="forgot-link" routerLink="/forgot-password">Forgot password?</a>
     </label>
 
     <app-custom-button class="submit" type="submit" fullWidth [disabled]="loginForm.invalid || isLoading()">

@@ -45,8 +45,8 @@ syndicate build
 syndicate deploy --deploy_name dev       # наступні зміни: syndicate update
 
 # 3) Frontend
-API_ID=$(aws apigateway get-rest-apis --region us-west-2 --query "items[?name=='restaurant-backend-api'].id | [0]" --output text)
-export BACKEND_URL="https://$API_ID.execute-api.us-west-2.amazonaws.com/develop"
+API_ID=$(aws apigateway get-rest-apis --region eu-north-1 --query "items[?name=='restaurant-backend-api'].id | [0]" --output text)
+export BACKEND_URL="https://$API_ID.execute-api.eu-north-1.amazonaws.com/develop"
 cd ../../frontend/restaurant-frontend-app && npm ci && npm run build
 aws s3 sync dist/restaurant-frontend-app/browser s3://restaurant-frontend-$ACCOUNT_ID/ --delete
 cd ../../infra/terraform && terraform output cloudfront_distribution_domain_name

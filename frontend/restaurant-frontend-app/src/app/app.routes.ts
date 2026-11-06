@@ -74,6 +74,20 @@ export const routes: Routes = [
         component: MainPageComponent,
       },
       {
+        path: 'forgot-password',
+        loadComponent: () =>
+          import('./auth/components/password-reset/forgot-password.component').then(
+            (m) => m.ForgotPasswordComponent,
+          ),
+      },
+      {
+        path: 'reset-password',
+        loadComponent: () =>
+          import('./auth/components/password-reset/reset-password.component').then(
+            (m) => m.ResetPasswordComponent,
+          ),
+      },
+      {
         path: 'menu',
         component: MenuPageComponent,
       },

@@ -86,6 +86,8 @@ public static class RouteRegistry
 
         // 2. Repositories
         services.AddSingleton<IUserRepository, UserRepository>();
+        services.AddSingleton<IPasswordResetService, PasswordResetService>();
+        services.AddSingleton<IRegistrationService, RegistrationService>();
         services.AddSingleton<IDishRepository, DishRepository>();
         services.AddSingleton<ILocationRepository, LocationRepository>();
         services.AddSingleton<IWaiterRepository, WaiterRepository>();
@@ -120,7 +122,11 @@ public static class RouteRegistry
 
         List<RouteHandler> GetAuthAndUserRoutes() => [
             new RouteHandler(new Route(HttpMethods.POST, "/register"), ActivatorUtilities.CreateInstance<RegistrationHandler>(provider)),
+            new RouteHandler(new Route(HttpMethods.POST, "/confirm-registration"), ActivatorUtilities.CreateInstance<ConfirmRegistrationHandler>(provider)),
+            new RouteHandler(new Route(HttpMethods.POST, "/resend-registration-code"), ActivatorUtilities.CreateInstance<ResendRegistrationCodeHandler>(provider)),
             new RouteHandler(new Route(HttpMethods.POST, "/signin"), ActivatorUtilities.CreateInstance<SignInHandler>(provider)),
+            new RouteHandler(new Route(HttpMethods.POST, "/forgot-password"), ActivatorUtilities.CreateInstance<ForgotPasswordHandler>(provider)),
+            new RouteHandler(new Route(HttpMethods.POST, "/reset-password"), ActivatorUtilities.CreateInstance<ResetPasswordHandler>(provider)),
             new RouteHandler(new Route(HttpMethods.GET, "/me"), ActivatorUtilities.CreateInstance<GetAuthorizedUserHandler>(provider)),
             new RouteHandler(new Route(HttpMethods.PUT, "/me"), ActivatorUtilities.CreateInstance<EditUserHandler>(provider)),
             new RouteHandler(new Route(HttpMethods.PUT, "/me/change-password"), ActivatorUtilities.CreateInstance<ChangeOwnPasswordHandler>(provider)),
@@ -222,6 +228,4 @@ public static class RouteRegistry
         return allRoutes;
     }
 }
-
-
 

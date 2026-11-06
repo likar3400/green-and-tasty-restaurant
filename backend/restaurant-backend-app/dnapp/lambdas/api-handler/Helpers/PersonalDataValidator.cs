@@ -69,6 +69,22 @@ public static partial class PersonalDataValidator
         }
     }
 
+    public static void ValidatePasswordForReset(string? password)
+    {
+        if (string.IsNullOrWhiteSpace(password) || password.Length < 8 || password.Length > 16)
+        {
+            throw new ValidationException("Password must be between 8 and 16 characters long.");
+        }
+
+        if (!Regex.IsMatch(password, "[a-z]") ||
+            !Regex.IsMatch(password, "[A-Z]") ||
+            !Regex.IsMatch(password, "[0-9]") ||
+            !Regex.IsMatch(password, @"[^a-zA-Z0-9\s]"))
+        {
+            throw new ValidationException("Password must include lowercase, uppercase, numeric, and special characters.");
+        }
+    }
+
     /// <summary>
     /// Validates that the provided password is not null, empty, or whitespace.
     /// </summary>

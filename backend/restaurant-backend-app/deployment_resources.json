@@ -22,7 +22,9 @@
             "ssm:GetParameter",
             "kms:Decrypt",
             "cognito-idp:AdminInitiateAuth",
-            "cognito-idp:AdminConfirmSignUp",
+            "cognito-idp:SignUp",
+            "cognito-idp:ConfirmSignUp",
+            "cognito-idp:ResendConfirmationCode",
             "cognito-idp:AdminAddUserToGroup",
             "cognito-idp:CreateGroup",
             "cognito-idp:GetGroup",
@@ -33,6 +35,8 @@
             "cognito-idp:ListUsers",
             "cognito-idp:AdminGetUser",
             "cognito-idp:AdminListGroupsForUser",
+            "cognito-idp:ForgotPassword",
+            "cognito-idp:ConfirmForgotPassword",
             "sqs:SendMessage",
             "sqs:ReceiveMessage",
             "sqs:DeleteMessage",
@@ -119,7 +123,75 @@
           "default_error_pattern": true
         }
       },
+      "/confirm-registration": {
+        "enable_cors": {
+          "state": true
+        },
+        "POST": {
+          "authorization_type": "NONE",
+          "integration_type": "lambda",
+          "lambda_name": "api-handler",
+          "api_key_required": false,
+          "method_request_parameters": {},
+          "integration_request_body_template": {},
+          "responses": [],
+          "integration_responses": [],
+          "default_error_pattern": true,
+          "enable_proxy": true
+        }
+      },
+      "/resend-registration-code": {
+        "enable_cors": {
+          "state": true
+        },
+        "POST": {
+          "authorization_type": "NONE",
+          "integration_type": "lambda",
+          "lambda_name": "api-handler",
+          "api_key_required": false,
+          "method_request_parameters": {},
+          "integration_request_body_template": {},
+          "responses": [],
+          "integration_responses": [],
+          "default_error_pattern": true,
+          "enable_proxy": true
+        }
+      },
       "/signin": {
+        "enable_cors": {
+          "state": true
+        },
+        "POST": {
+          "authorization_type": "NONE",
+          "integration_type": "lambda",
+          "lambda_name": "api-handler",
+          "api_key_required": false,
+          "method_request_parameters": {},
+          "integration_request_body_template": {},
+          "responses": [],
+          "integration_responses": [],
+          "default_error_pattern": true,
+          "enable_proxy": true
+        }
+      },
+      "/forgot-password": {
+        "enable_cors": {
+          "state": true
+        },
+        "POST": {
+          "authorization_type": "NONE",
+          "integration_type": "lambda",
+          "lambda_name": "api-handler",
+          "api_key_required": false,
+          "method_request_parameters": {},
+          "integration_request_body_template": {},
+          "responses": [],
+          "integration_responses": [],
+          "default_error_pattern": true,
+          "enable_proxy": true
+        }
+      },
+      "/reset-password": {
         "enable_cors": {
           "state": true
         },
@@ -1382,7 +1454,3 @@
     }
   }
 }
-
-
-
-

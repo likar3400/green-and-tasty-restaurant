@@ -24,7 +24,11 @@ Production build:
 BACKEND_URL=https://<api-id>.execute-api.<region>.amazonaws.com/develop npm run build
 ```
 
-`BACKEND_URL` is **mandatory** — see [§3](#3-environment-configuration).
+`BACKEND_URL` is **mandatory** — see [§3](#3-environment-configuration). For the currently configured API, use:
+
+```bash
+BACKEND_URL=https://zkxblk69uj.execute-api.eu-north-1.amazonaws.com/develop npm run build
+```
 
 ---
 
@@ -51,8 +55,8 @@ BACKEND_URL=https://<api-id>.execute-api.<region>.amazonaws.com/develop npm run 
 
 npm hooks in `package.json`:
 
-- `prebuild` → `scripts/set-env.mjs` writes `environment.production.ts` from `$BACKEND_URL`. Missing or malformed → the build aborts with a usage message, so a placeholder bundle cannot be produced.
-- `postbuild` → `scripts/check-bundle.mjs` scans `dist/**/*.{js,css,html}`; any `BACKEND_URL_PLACEHOLDER` left → non-zero exit. A successful run prints `Bundle check passed`.
+- `prebuild` → `scripts/set-env.mjs` writes `environment.production.ts` from `$BACKEND_URL`. Missing, malformed, non-HTTPS, or credential-bearing URLs abort the build.
+- `postbuild` → `scripts/check-bundle.mjs` scans `dist/**/*.{js,css,html}`; any `BACKEND_URL_PLACEHOLDER` left or configured `BACKEND_URL` absent → non-zero exit. A successful run confirms the configured URL is in the bundle.
 
 Never commit `environment.production.ts`; never hardcode an API URL in it. To guard a new placeholder, extend `FORBIDDEN` in `scripts/check-bundle.mjs`.
 

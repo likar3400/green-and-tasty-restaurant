@@ -1,43 +1,25 @@
-using Amazon.CognitoIdentityProvider;
 using Amazon.CognitoIdentityProvider.Model;
 using Amazon.Lambda.APIGatewayEvents;
 using Amazon.Lambda.Core;
-using APIHandler.Constants;
 using APIHandler.Exceptions;
 using APIHandler.Helpers;
 using APIHandler.Models;
-using APIHandler.Models.Users;
-using APIHandler.Services.Waiters;
+using APIHandler.Services.Auth;
 using System;
-using System.Net;
 using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace APIHandler.Handlers;
 
-/// <summary>
-/// Handles user registration requests by validating input data, registering the user with Amazon Cognito,
-/// </summary>
-public class RegistrationHandler : IApiRequestHandler
+public sealed class RegistrationHandler : IApiRequestHandler
 {
-    private readonly string _userPoolId = ResourceNames.UserPoolId;
-    private readonly IWaiterService _waiterService;
-    private readonly AmazonCognitoIdentityProviderClient _cognitoClient;
+    private readonly IRegistrationService _registrationService;
 
-    public RegistrationHandler(IWaiterService waiterService, AmazonCognitoIdentityProviderClient cognitoClient)
+    public RegistrationHandler(IRegistrationService registrationService)
     {
-        _waiterService = waiterService ?? throw new ArgumentNullException(nameof(waiterService));
-        _cognitoClient = cognitoClient ?? throw new ArgumentNullException(nameof(cognitoClient));
+        _registrationService = registrationService ?? throw new ArgumentNullException(nameof(registrationService));
     }
 
-    /// <summary>
-    /// Handles the incoming API Gateway request for user registration.
-    /// Validates the request body, registers the user with Amazon Cognito, and confirms the user registration.
-    /// </summary>
-    /// <param name="request">The API Gateway proxy request containing the HTTP request data.</param>
-    /// <param name="context">The Lambda context object providing information about the current invocation, function, and execution environment.</param>
-    /// <returns>A task that represents the asynchronous operation. The task result contains an <see cref="APIGatewayProxyResponse"/>
-    /// which encapsulates the HTTP response to be returned to the API Gateway, including status code, headers, and body.</returns>
     public async Task<APIGatewayProxyResponse> HandleRequest(APIGatewayProxyRequest request, ILambdaContext context)
     {
         if (!TryDeserializeRequest(request, out var registrationRequest))
@@ -57,113 +39,54 @@ public class RegistrationHandler : IApiRequestHandler
             return ResponseBuilder.CreateErrorResponse(400, ex.Message, context.Logger);
         }
 
-        var registrationError = await TryRegisterUserAsync(registrationRequest);
-        if (registrationError is not null)
-        {
-            return ResponseBuilder.CreateErrorResponse(500, registrationError ?? "User registration failed", context.Logger);
-        }
-
-        var confirmationError = await TryConfirmUserAsync(registrationRequest.Email);
-        if (confirmationError is not null)
-        {
-            return ResponseBuilder.CreateErrorResponse(500, confirmationError ?? "User confirmation failed", context.Logger);
-        }
-
-        var groupError = await AddUserToGroupAsync(registrationRequest.Email);
-        if (groupError is not null)
-        {
-            return ResponseBuilder.CreateErrorResponse(500, groupError ?? "Failed to add user to group", context.Logger);
-        }
-
-        return ResponseBuilder.CreateSuccessResponse("User registered and confirmed successfully");
-    }
-
-    private static bool TryDeserializeRequest(APIGatewayProxyRequest request, out RegistrationRequest registrationRequest)
-    {
         try
         {
-            registrationRequest = JsonSerializer.Deserialize<RegistrationRequest>(request.Body);
-            return registrationRequest != null;
-        }
-        catch (JsonException)
-        {
-            registrationRequest = null;
-            return false;
-        }
-    }
+            var destination = await _registrationService.RegisterAsync(
+                registrationRequest.FirstName,
+                registrationRequest.LastName,
+                registrationRequest.Email,
+                registrationRequest.Password);
 
-    private async Task<string?> TryRegisterUserAsync(RegistrationRequest registrationRequest)
-    {
-        var signUpRequest = new SignUpRequest
-        {
-            ClientId = ResourceNames.ClientId,
-            Username = registrationRequest.Email,
-            Password = registrationRequest.Password,
-            UserAttributes =
-            [
-                new AttributeType { Name = "email", Value = registrationRequest.Email },
-                new AttributeType { Name = "given_name", Value = registrationRequest.FirstName },
-                new AttributeType { Name = "family_name", Value = registrationRequest.LastName }
-            ]
-        };
-        try
-        {
-            var result = await _cognitoClient.SignUpAsync(signUpRequest);
-            var success = result.HttpStatusCode == HttpStatusCode.OK;
-            return success ? null : "User registration failed";
-        }
-        catch (Exception ex)
-        {
-            return ex.Message;
-        }
-    }
-
-    private async Task<string?> TryConfirmUserAsync(string email)
-    {
-        var confirmSignUpRequest = new AdminConfirmSignUpRequest
-        {
-            UserPoolId = _userPoolId,
-            Username = email
-        };
-        try
-        {
-            await _cognitoClient.AdminConfirmSignUpAsync(confirmSignUpRequest);
-            return null;
-        }
-        catch (Exception ex)
-        {
-            return ex.Message;
-        }
-    }
-
-    private async Task<string?> AddUserToGroupAsync(string email)
-    {
-        var groupNameStr = Roles.Customer.ToString(); // On registration, users are alwaus added to the Customer group since adding to a waiters groups requires user to be registered first.
-        var groups = await _cognitoClient.ListGroupsAsync(new ListGroupsRequest { UserPoolId = _userPoolId });
-
-        try
-        {
-            if (!groups.Groups.Exists(g => g.GroupName.Equals(groupNameStr, StringComparison.OrdinalIgnoreCase)))
+            return ResponseBuilder.CreateJsonResponse(200, new
             {
-                await _cognitoClient.CreateGroupAsync(new CreateGroupRequest
-                {
-                    GroupName = groupNameStr,
-                    UserPoolId = _userPoolId,
-                    Description = $"Group for role {groupNameStr}"
-                });
+                message = "A confirmation code has been sent to your email address.",
+                requiresEmailConfirmation = true,
+                destination
+            });
+        }
+        catch (UsernameExistsException)
+        {
+            return ResponseBuilder.CreateErrorResponse(409, "An account with this email already exists.", context.Logger);
+        }
+        catch (LimitExceededException)
+        {
+            return ResponseBuilder.CreateErrorResponse(429, "Too many registration attempts. Please try again later.", context.Logger);
+        }
+        catch (Exception)
+        {
+            context.Logger.LogLine("User registration failed.");
+            return ResponseBuilder.CreateErrorResponse(503, "Registration is temporarily unavailable.", context.Logger);
+        }
+    }
+
+    private static bool TryDeserializeRequest(APIGatewayProxyRequest request, out RegistrationRequest body)
+    {
+        try
+        {
+            var result = JsonSerializer.Deserialize<RegistrationRequest>(request.Body);
+            if (result is null)
+            {
+                body = null!;
+                return false;
             }
 
-            await _cognitoClient.AdminAddUserToGroupAsync(new AdminAddUserToGroupRequest
-            {
-                UserPoolId = _userPoolId,
-                Username = email,
-                GroupName = groupNameStr
-            });
-            return null;
+            body = result;
+            return true;
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is JsonException or ArgumentNullException)
         {
-            return $"Failed to add user {email} to group {groupNameStr}: {ex.Message}";
+            body = null!;
+            return false;
         }
     }
 }

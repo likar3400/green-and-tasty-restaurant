@@ -2,7 +2,7 @@
 # Перевіряє, що нові маршрути розгорнуті. Без токена Cognito має відповісти 401;
 # 403 "Missing Authentication Token" означає, що маршруту в API Gateway немає.
 # Із ID_TOKEN, RES_ID, GROUP_ID перевіряє ще й 200 / 404.
-: "${BACKEND_URL:?set BACKEND_URL, e.g. https://<id>.execute-api.us-west-2.amazonaws.com/develop}"
+: "${BACKEND_URL:?set BACKEND_URL, e.g. https://<id>.execute-api.eu-north-1.amazonaws.com/develop}"
 fail=0
 check() { # method path expected [token]
   local code
