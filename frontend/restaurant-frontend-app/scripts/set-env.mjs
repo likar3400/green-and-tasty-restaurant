@@ -54,6 +54,7 @@ const contents = `// GENERATED FILE — do not edit, do not commit.
 // Produced by scripts/set-env.mjs from the BACKEND_URL environment variable.
 export const environment = {
   backendUrl: ${JSON.stringify(parsedBackendUrl.toString().replace(/\/$/, ''))},
+  enableCatalogDemoData: false,
 };
 `;
 

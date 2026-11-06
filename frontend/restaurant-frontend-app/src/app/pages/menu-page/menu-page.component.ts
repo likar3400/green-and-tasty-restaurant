@@ -10,6 +10,7 @@ import { DishSortingLabels, DishTypeLabels } from '@app/shared/mappers/dish-enum
 import { DishModalComponent } from '@app/components/dish-modal/dish-modal.component';
 import { PreOrdersService } from '@app/services/pre-orders/pre-orders.service';
 import {ToastService} from '@app/services/toast/toast.service';
+import { CatalogDemoService } from '@app/services/catalog-demo/catalog-demo.service';
 
 @Component({
   selector: 'app-menu-page',
@@ -29,6 +30,7 @@ export class MenuPageComponent implements OnInit {
   private toast = inject(ToastService);
   dishes: DishListResponse[] = [];
   filteredDishes: DishListResponse[] = [];
+  showCatalogDemoNotice = false;
 
   isPreOrderEnabled = false;
   preOrderReservationId?: string;
@@ -44,6 +46,7 @@ export class MenuPageComponent implements OnInit {
   selectedSort: DishSort = DishSort.PopularityDescending;
 
   private readonly dishesService = inject(DishesService);
+  private readonly catalogDemoService = inject(CatalogDemoService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private  readonly orderService = inject(PreOrdersService);
@@ -75,11 +78,14 @@ export class MenuPageComponent implements OnInit {
   }
 
   loadDishes(): void {
+    this.showCatalogDemoNotice = false;
     const category = this.selectedCategory ?? undefined;
     const sort = this.selectedSort;
 
     this.dishesService.getDishes(category, sort).subscribe((data) => {
-      this.dishes = data.map((dish) => ({
+      const catalog = this.catalogDemoService.resolveDishes(data, category);
+      this.showCatalogDemoNotice = catalog.usedDemoData;
+      this.dishes = catalog.items.map((dish) => ({
         ...dish,
         imageUrl: dish.imageUrl || 'assets/img/dish.png',
         name: dish.name || 'Unknown Dish',
@@ -96,6 +102,11 @@ export class MenuPageComponent implements OnInit {
       }));
 
       this.filteredDishes = this.dishes;
+    }, () => {
+      this.showCatalogDemoNotice = false;
+      this.dishes = [];
+      this.filteredDishes = [];
+      this.toast.error('Unable to load menu dishes. Please try again later.', 'Error');
     });
   }
 
@@ -139,6 +150,10 @@ export class MenuPageComponent implements OnInit {
   }
 
   addDishToCart(dish: DishListResponse): void {
+    if (this.showCatalogDemoNotice) {
+      return;
+    }
+
     this.orderService
       .addDishToPreOrderByReservationId(this.preOrderReservationId!, dish, 1)
       .subscribe({

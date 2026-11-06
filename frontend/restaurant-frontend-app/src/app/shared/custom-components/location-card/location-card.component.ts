@@ -20,6 +20,7 @@ import { LocationResponse } from '@app/models/locations/location-response.model'
 export class LocationCardComponent {
   readonly location = input.required<LocationResponse>();
   readonly maxWidth = input('');
+  readonly linkEnabled = input(true);
 
   get tablesLabel(): string {
     return this.location().totalCapacity >= 2
