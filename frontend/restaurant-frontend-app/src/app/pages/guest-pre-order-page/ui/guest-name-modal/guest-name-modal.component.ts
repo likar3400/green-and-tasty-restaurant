@@ -14,6 +14,8 @@ import { GuestInviteVm } from '../../state/guest-preorder.store';
 })
 export class GuestNameModalComponent {
     readonly invite = input<GuestInviteVm | null>(null);
+    readonly loading = input(false);
+    readonly error = input<string | null>(null);
 
     readonly confirmed = output<string>();
     readonly closed = output<void>(); // x / esc / backdrop (we'll ignore this on the page)
@@ -26,7 +28,7 @@ export class GuestNameModalComponent {
 
     submit() {
         this.touched.set(true);
-        if (!this.valid()) return;
+        if (!this.valid() || this.loading()) return;
         this.confirmed.emit(this.trimmed());
     }
 }

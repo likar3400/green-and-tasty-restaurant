@@ -132,8 +132,6 @@ export class GuestPreorderStore {
             return;
         }
 
-        this.setGuestName(name);
-
         const groupReservationId = inv.GroupReservationId;
         if (!groupReservationId) {
             this.joinError.set('Invite is missing GroupReservationId');
@@ -142,21 +140,22 @@ export class GuestPreorderStore {
 
         const payload = {
             groupReservationId,
-            guestName: this.guestName(),
+            guestName: name.trim(),
         };
-
-        console.log('[join payload]', payload);
 
         this.joinLoading.set(true);
         this.joinError.set(null);
 
         try {
             const res = await firstValueFrom(this.guestSessionsService.createSession(payload));
+            if (!res.SessionId || !res.SessionToken) {
+                throw new Error('The server returned an invalid guest session.');
+            }
+            this.setGuestName(name);
             this.guestSessionId.set(res.SessionId);
             this.guestSessionToken.set(res.SessionToken);
             await this.loadMenu();
         } catch (e) {
-            console.log('[join error]', e);
             this.joinError.set('Failed to join session');
         } finally {
             this.joinLoading.set(false);
@@ -210,12 +209,8 @@ export class GuestPreorderStore {
 
         try {
             const res = await firstValueFrom(this.guestSessionsService.getMenu(id, token));
-            console.log('[menu response]', res);
-            console.log('[menu dishes keys]', Object.keys(res.dishes ?? {}));
-
             this.menuByCategory.set(res.dishes ?? {});
-        } catch (e) {
-            console.log('[menu error]', e);
+        } catch {
             this.menuError.set('Failed to load menu');
             this.menuByCategory.set({});
         } finally {
@@ -317,6 +312,9 @@ export class GuestPreorderStore {
                 groupReservationId: invite.GroupReservationId,
                 guestName,
             }));
+            if (!session.SessionId || !session.SessionToken) {
+                throw new Error('The server returned an invalid guest session.');
+            }
             this.guestSessionId.set(session.SessionId);
             this.guestSessionToken.set(session.SessionToken);
             await this.loadMenu();
@@ -363,7 +361,8 @@ export class GuestPreorderStore {
         localStorage.removeItem(this.key(ctx, 'guestName'));
         localStorage.removeItem(this.key(ctx, 'cart'));
         localStorage.removeItem(this.key(ctx, 'status'));
-        // cleanup legacy
+        localStorage.removeItem(this.key(ctx, 'guestSessionId'));
+        localStorage.removeItem(this.key(ctx, 'guestSessionToken'));
     }
 
     private key(

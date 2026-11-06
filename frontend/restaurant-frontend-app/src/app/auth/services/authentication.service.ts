@@ -25,14 +25,22 @@ export class AuthenticationService {
     };
     const url = this.baseUrl + '/signin';
 
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(body),
-    });
-    return await this.resolveLoginReponse(response);
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
+      });
+      return await this.resolveLoginReponse(response);
+    } catch (error) {
+      console.error('Login request failed:', error);
+      return {
+        success: false,
+        message: 'Unable to connect to the server. Please check your connection and try again.',
+      };
+    }
   }
   getToken(): string | undefined {
     const authData = localStorage.getItem('auth');
@@ -93,7 +101,7 @@ export class AuthenticationService {
         this.loadUser();
       } else if (!response.ok) {
         result.success = false;
-        result.message = body.error;
+        result.message = body.error ?? body.message;
         console.error('Login failed:', result.message);
       } else {
         result.success = false;

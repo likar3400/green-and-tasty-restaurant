@@ -80,11 +80,15 @@
 
 .forgot-link {
     align-self: flex-end;
+    padding: 0;
+    border: 0;
+    background: transparent;
     font-size: 14px;
     line-height: 16px;
     color: color.$blue-500;
     font-weight: 600;
     text-decoration:underline;
+    cursor: pointer;
 
     &:hover { text-decoration:none; }
 }
