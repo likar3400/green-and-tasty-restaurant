@@ -6,7 +6,7 @@ import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 
 const BUNDLE_DIR = resolve('dist/restaurant-frontend-app/browser');
-const FORBIDDEN = ['BACKEND_URL_PLACEHOLDER'];
+const FORBIDDEN = ['BACKEND_URL_PLACEHOLDER', 'demo-catalog-rustaveli-48'];
 const expectedBackendUrl = process.env.BACKEND_URL
   ? new URL(process.env.BACKEND_URL.trim()).toString().replace(/\/$/, '')
   : undefined;

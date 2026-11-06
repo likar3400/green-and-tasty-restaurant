@@ -21,6 +21,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { filter, map, startWith } from 'rxjs/operators';
 
 import { LoginModalComponent } from '@app/auth/components/login/login-modal/login-modal.component';
+import { CatalogDemoService } from '@app/services/catalog-demo/catalog-demo.service';
 
 @Component({
   selector: 'app-main-page',
@@ -38,6 +39,8 @@ export class MainPageComponent implements OnInit {
   locationsLoading = true;
   dishesError = false;
   locationsError = false;
+  showDemoDishes = false;
+  showDemoLocations = false;
 
   showFeedbackModal = false;
   selectedReservationCustomer!: ReservationCustomer;
@@ -51,6 +54,7 @@ export class MainPageComponent implements OnInit {
   private readonly reservationsService = inject(ReservationService)
   private readonly userService = inject(UsersService);
   private readonly feedbackService = inject(FeedbacksService);
+  private readonly catalogDemoService = inject(CatalogDemoService);
 
   private readonly router = inject(Router);
 
@@ -88,9 +92,12 @@ export class MainPageComponent implements OnInit {
   loadPopularDishes(): void {
     this.dishesLoading = true;
     this.dishesError = false;
+    this.showDemoDishes = false;
     this.dishesService.getPopularDishes().subscribe({
       next: (data) => {
-        this.dishes = data.slice(0, 4).map((dish) => ({
+        const catalog = this.catalogDemoService.resolveDishes(data);
+        this.showDemoDishes = catalog.usedDemoData;
+        this.dishes = catalog.items.slice(0, 4).map((dish) => ({
           ...dish,
           imageUrl: dish.imageUrl || 'assets/img/dish.png',
           name: dish.name || 'Unknown Dish',
@@ -102,6 +109,7 @@ export class MainPageComponent implements OnInit {
       error: () => {
         this.dishes = [];
         this.dishesError = true;
+        this.showDemoDishes = false;
         this.dishesLoading = false;
       },
     });
@@ -110,9 +118,12 @@ export class MainPageComponent implements OnInit {
   loadLocations(): void {
     this.locationsLoading = true;
     this.locationsError = false;
+    this.showDemoLocations = false;
     this.locationsService.getLocations().subscribe({
       next: (data) => {
-        this.locations = data.slice(0, 3).map((location) => ({
+        const catalog = this.catalogDemoService.resolveLocations(data);
+        this.showDemoLocations = catalog.usedDemoData;
+        this.locations = catalog.items.slice(0, 3).map((location) => ({
           ...location,
           imageUrl: location.imageUrl || 'assets/img/locations/baratashvili-street-14.jpg',
           address: location.address || 'Unknown Address',
@@ -124,6 +135,7 @@ export class MainPageComponent implements OnInit {
       error: () => {
         this.locations = [];
         this.locationsError = true;
+        this.showDemoLocations = false;
         this.locationsLoading = false;
       },
     });

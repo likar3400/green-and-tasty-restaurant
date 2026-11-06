@@ -59,6 +59,10 @@
                 {
                   "replace": "src/environments/environment.ts",
                   "with": "src/environments/environment.production.ts"
+                },
+                {
+                  "replace": "src/app/services/catalog-demo/catalog-demo.service.ts",
+                  "with": "src/app/services/catalog-demo/catalog-demo.production.service.ts"
                 }
               ]
             },

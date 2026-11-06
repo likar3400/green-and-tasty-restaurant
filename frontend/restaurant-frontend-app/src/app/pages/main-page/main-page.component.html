@@ -21,6 +21,9 @@
   <!-- Most Popular Dishes -->
   <div class="popular-dishes-section">
     <h2 class="section-heading">Most Popular Dishes</h2>
+    @if (showDemoDishes) {
+      <p class="catalog-demo-notice" role="note">Local demo catalog — not live menu data.</p>
+    }
 
     @if (dishesLoading) {
       <p>Loading popular dishes...</p>
@@ -52,6 +55,9 @@
   <!-- Locations -->
   <div class="locations-section">
     <h2 class="section-heading">Locations</h2>
+    @if (showDemoLocations) {
+      <p class="catalog-demo-notice" role="note">Local demo locations — not live restaurant records.</p>
+    }
 
     @if (locationsLoading) {
       <p>Loading locations...</p>
@@ -65,7 +71,11 @@
     } @else {
     <div class="location-cards">
       @for (location of locations; track location) {
-        <app-location-card [location]="location" maxWidth="488px"></app-location-card>
+        <app-location-card
+          [location]="location"
+          [linkEnabled]="!showDemoLocations"
+          maxWidth="488px"
+        ></app-location-card>
       }
     </div>
     }

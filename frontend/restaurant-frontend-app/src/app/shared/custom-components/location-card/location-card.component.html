@@ -1,5 +1,6 @@
 <a
-  [routerLink]="'/locations/' + location().id"
+  [routerLink]="linkEnabled() ? ['/locations', location().id] : null"
+  [attr.aria-disabled]="linkEnabled() ? null : 'true'"
   routerLinkActive="router-link-active"
   class="location-card"
   [style.max-width]="maxWidth() || null"

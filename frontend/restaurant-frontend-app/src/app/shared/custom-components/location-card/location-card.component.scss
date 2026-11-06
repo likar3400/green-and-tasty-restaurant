@@ -17,6 +17,10 @@
     @include card.common-image();
   }
 
+  &[aria-disabled='true'] {
+    cursor: default;
+  }
+
   .location-text-block {
     flex-grow: 1;
     background-color: #ffffff;

@@ -13,7 +13,7 @@ describe('LocationCardComponent', () => {
     description: 'Test restaurant',
     totalCapacity: 50,
     averageOccupancy: '75%',
-    imageUrl: 'assets/img/location.jpg',
+    imageUrl: 'assets/img/locations/baratashvili-street-14.jpg',
     rating: 4.5,
   };
 
@@ -32,5 +32,14 @@ describe('LocationCardComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('can render a local demo card without a live location link', () => {
+    fixture.componentRef.setInput('linkEnabled', false);
+    fixture.detectChanges();
+
+    const link = fixture.nativeElement.querySelector('a');
+    expect(link.getAttribute('aria-disabled')).toBe('true');
+    expect(link.hasAttribute('href')).toBeFalse();
   });
 });
