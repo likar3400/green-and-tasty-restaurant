@@ -9,10 +9,12 @@ import {
   GroupOrdersMockStore,
   MockHttpError,
 } from './group-orders.mock-store';
+import { GuestSessionMockStore } from './guest-session-mock-store';
 import { isDemoAuthorization } from '../auth/demo-auth';
 
 const LATENCY_MS = 400;
 export const groupOrdersMockStore = new GroupOrdersMockStore();
+export const guestSessionMockStore = new GuestSessionMockStore();
 
 /**
  * DEV-ONLY. Перехоплює запити ЛИШЕ для демо-бронювання `demo-reservation` / `demo-group`.
@@ -52,6 +54,38 @@ export const groupOrdersMockInterceptor: HttpInterceptorFn = (req, next) => {
   }
   if (req.method === 'GET' && path.endsWith(`/guest/groups/${DEMO_GROUP_ID}/status`)) {
     return respond(() => store.groupStatus());
+  }
+  if (req.method === 'POST' && path.endsWith('/guest/sessions')) {
+    const body = req.body as { groupReservationId?: string; guestName?: string } | null;
+    if (body?.groupReservationId === DEMO_GROUP_ID) {
+      return respond(() => guestSessionMockStore.createSession(DEMO_GROUP_ID, body.guestName ?? ''));
+    }
+  }
+  const guestSessionRoute = path.match(/\/guest\/sessions\/([^/]+)\/(menu|dishes|submit)$/);
+  if (guestSessionRoute) {
+    const [, guestSessionId, action] = guestSessionRoute;
+    const token = req.headers.get('Authorization')?.replace(/^Bearer\s+/, '') ?? '';
+
+    if (req.method === 'GET' && action === 'menu') {
+      return respond(() => guestSessionMockStore.getMenu(guestSessionId, token));
+    }
+    if (action === 'dishes' && (req.method === 'POST' || req.method === 'DELETE')) {
+      const body = req.body as { dishId?: string; quantity?: number } | null;
+      return respond(() => {
+        if (req.method === 'POST') {
+          guestSessionMockStore.addDish(guestSessionId, token, body?.dishId ?? '', body?.quantity ?? 0);
+          return { message: 'Dish added successfully.' };
+        }
+        guestSessionMockStore.removeDish(guestSessionId, token, body?.dishId ?? '', body?.quantity ?? 0);
+        return { message: 'Dish removed successfully.' };
+      });
+    }
+    if (req.method === 'POST' && action === 'submit') {
+      return respond(() => {
+        guestSessionMockStore.submit(guestSessionId, token);
+        return { success: true, message: 'Cart submitted successfully.' };
+      });
+    }
   }
   if (req.method === 'POST' && path.endsWith(`/group-reservations/${DEMO_GROUP_ID}/submit`)) {
     return respond(() => store.submit((req.body as { reservationId?: string } | null)?.reservationId ?? ''));

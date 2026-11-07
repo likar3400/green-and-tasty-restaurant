@@ -1,4 +1,4 @@
-import { Component, computed, effect, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, isDevMode, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -10,6 +10,7 @@ import { DishCardComponent } from '@app/shared/custom-components/dish-card/dish-
 import { MainCoverImageComponent } from '@app/shared/custom-components/main-cover-image/main-cover-image.component';
 import { ToastService } from '@app/services/toast/toast.service';
 import { GuestPreorderStore } from './state/guest-preorder.store';
+import { DEMO_GROUP_ID } from '@app/shared/mocks/group-orders/group-orders.mock-store';
 
 import { GuestNameModalComponent } from './ui/guest-name-modal/guest-name-modal.component';
 import { GuestCartDrawerComponent } from './ui/guest-cart-drawer/guest-cart-drawer.component';
@@ -38,6 +39,9 @@ export class GuestPreOrderPageComponent {
     readonly isCartOpen = signal(false);
     readonly selectedCategory = signal<string | null>(null);
     readonly selectedSort = signal<'recommended' | 'price-asc' | 'price-desc'>('recommended');
+    readonly isLocalDemoInvite = computed(() =>
+        isDevMode() && this.store.invite()?.GroupReservationId === DEMO_GROUP_ID
+    );
 
     readonly categoryOptions = computed(() =>
         this.store.menuCategories().map(key => ({ key, label: this.categoryLabel(key) }))

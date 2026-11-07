@@ -28,6 +28,9 @@
         <img src="assets/svg/cart-empty.svg" alt="" />
     </button>
 </div>
+@if (isLocalDemoInvite()) {
+<p class="catalog-demo-notice" role="note">Local demo guest menu — cart changes are kept in memory and are not sent to the live restaurant.</p>
+}
 
 <div class="menu-container">
     <div class="page-navigation">
