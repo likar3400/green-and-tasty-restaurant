@@ -3,6 +3,7 @@ import { of, throwError } from 'rxjs';
 import { GuestInviteService } from '@app/services/reservation/guest-invite.service';
 import { GuestSessionsService } from '@app/services/guest-sessions/guest-sessions.service';
 import { GuestPreorderStore } from './guest-preorder.store';
+import { DEMO_INVITE_TOKEN } from '@app/shared/mocks/group-orders/group-orders.mock-store';
 
 describe('GuestPreorderStore', () => {
   let store: GuestPreorderStore;
@@ -80,5 +81,22 @@ describe('GuestPreorderStore', () => {
     expect(localStorage.getItem('guestPreorder:invite-token:guestSessionToken')).toBeNull();
     expect(localStorage.getItem('guestPreorder:invite-token:guestName')).toBeNull();
     expect(localStorage.getItem('guestPreorder:invite-token:cart')).toBeNull();
+  });
+
+  it('does not reuse or persist the in-memory local demo guest session across reloads', () => {
+    localStorage.setItem(`guestPreorder:${DEMO_INVITE_TOKEN}:guestName`, 'Old Guest');
+    localStorage.setItem(`guestPreorder:${DEMO_INVITE_TOKEN}:guestSessionId`, 'stale-session');
+    localStorage.setItem(`guestPreorder:${DEMO_INVITE_TOKEN}:guestSessionToken`, 'stale-token');
+    localStorage.setItem(`guestPreorder:${DEMO_INVITE_TOKEN}:cart`, '[]');
+
+    store.initContext(DEMO_INVITE_TOKEN);
+
+    expect(store.guestName()).toBe('');
+    expect(store.guestSessionId()).toBeNull();
+    expect(store.guestSessionToken()).toBeNull();
+    expect(localStorage.getItem(`guestPreorder:${DEMO_INVITE_TOKEN}:guestName`)).toBeNull();
+    expect(localStorage.getItem(`guestPreorder:${DEMO_INVITE_TOKEN}:guestSessionId`)).toBeNull();
+    expect(localStorage.getItem(`guestPreorder:${DEMO_INVITE_TOKEN}:guestSessionToken`)).toBeNull();
+    expect(localStorage.getItem(`guestPreorder:${DEMO_INVITE_TOKEN}:cart`)).toBeNull();
   });
 });

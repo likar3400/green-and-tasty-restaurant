@@ -1,10 +1,11 @@
-import { Injectable, computed, effect, signal, inject } from '@angular/core';
+import { Injectable, computed, effect, signal, inject, isDevMode } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { GuestInviteService } from '@app/services/reservation/guest-invite.service';
 import { GuestInvite } from '@app/models/reservations/guest-invite.model';
 import { GuestMenuDish } from '@app/services/guest-sessions/guest-sessions.service';
 import { GuestSessionsService } from '@app/services/guest-sessions/guest-sessions.service';
+import { DEMO_INVITE_TOKEN } from '@app/shared/mocks/group-orders/group-orders.mock-store';
 
 export type GuestPreorderStatus = 'active' | 'submitted';
 
@@ -66,6 +67,8 @@ export class GuestPreorderStore {
             const ctx = this.contextId();
             if (!ctx) return;
 
+            if (isDevMode() && ctx === DEMO_INVITE_TOKEN) return;
+
             // IMPORTANT: after submit do not persist anything
             if (this.status() !== 'active') return;
 
@@ -81,6 +84,19 @@ export class GuestPreorderStore {
         if (this.contextId() === id) return;
 
         this.contextId.set(id);
+
+        if (isDevMode() && id === DEMO_INVITE_TOKEN) {
+            this.clearStorage(id);
+            this.guestName.set('');
+            this.status.set('active');
+            this.cartItems.set([]);
+            this.guestSessionId.set(null);
+            this.guestSessionToken.set(null);
+            this.menuByCategory.set({});
+            void this.loadInviteByToken(id);
+            return;
+        }
+
         void this.loadInviteByToken(id);
 
         const name = localStorage.getItem(this.key(id, 'guestName'));

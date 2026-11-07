@@ -1,8 +1,18 @@
 import { JwtHelperService } from '@auth0/angular-jwt';
-import { applyDemoLoginFromUrl, createDemoTokens, DEMO_USER, isDemoAuthorization } from './demo-auth';
+import {
+  applyDemoLoginFromUrl,
+  createDemoTokens,
+  DEMO_USER,
+  getDemoUser,
+  isDemoAuthorization,
+  resetDemoUser,
+  updateDemoUser,
+} from './demo-auth';
 
 describe('demo auth (dev-only)', () => {
   const jwt = new JwtHelperService();
+
+  beforeEach(() => resetDemoUser());
 
   it('creates a token the app accepts: decodable, not expired, with the Customer role', () => {
     const { idToken, accessToken } = createDemoTokens();
@@ -32,5 +42,17 @@ describe('demo auth (dev-only)', () => {
     const history = jasmine.createSpyObj<History>('History', ['replaceState']);
     expect(applyDemoLoginFromUrl({ href: 'http://localhost:4200/main' }, storage, history)).toBeFalse();
     expect(storage.setItem).not.toHaveBeenCalled();
+  });
+
+  it('resets local profile changes when demo login is reapplied', () => {
+    updateDemoUser('Local', 'Profile');
+    expect(getDemoUser().firstName).toBe('Local');
+
+    const storage = jasmine.createSpyObj<Storage>('Storage', ['setItem']);
+    const history = jasmine.createSpyObj<History>('History', ['replaceState']);
+    applyDemoLoginFromUrl({ href: 'http://localhost:4200/profile?demo' }, storage, history);
+
+    expect(getDemoUser()).toEqual(DEMO_USER);
+    expect(storage.setItem).toHaveBeenCalledWith('user', JSON.stringify(DEMO_USER));
   });
 });

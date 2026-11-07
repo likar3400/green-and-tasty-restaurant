@@ -19,19 +19,45 @@ export const DEMO_USER: UserModel = {
   role: Roles.CUSTOMER,
 };
 
+let demoUserState = { ...DEMO_USER };
+let demoProfileImage = 'assets/img/avatar.png';
+
+export function getDemoUser(): UserModel {
+  return { ...demoUserState };
+}
+
+export function updateDemoUser(firstName: string, lastName: string): UserModel {
+  demoUserState = { ...demoUserState, firstName, lastName };
+  return getDemoUser();
+}
+
+export function getDemoProfileImage(): string {
+  return demoProfileImage;
+}
+
+export function updateDemoProfileImage(image: string): void {
+  demoProfileImage = image;
+}
+
+export function resetDemoUser(): void {
+  demoUserState = { ...DEMO_USER };
+  demoProfileImage = 'assets/img/avatar.png';
+}
+
 const base64Url = (value: object): string =>
   btoa(unescape(encodeURIComponent(JSON.stringify(value)))).replace(/=+$/, '').replace(/\+/g, '-').replace(/\//g, '_');
 
 /** Непідписаний JWT: фронтенд токен лише декодує (exp, ролі), а перевіряє його тільки бекенд. */
 export function createDemoTokens(now = Date.now()): Tokens {
+  const user = getDemoUser();
   const iat = Math.floor(now / 1000);
   const payload = {
     iss: DEMO_ISSUER,
-    sub: DEMO_USER.id,
-    email: DEMO_USER.email,
-    given_name: DEMO_USER.firstName,
-    family_name: DEMO_USER.lastName,
-    'cognito:groups': [DEMO_USER.role],
+    sub: user.id,
+    email: user.email,
+    given_name: user.firstName,
+    family_name: user.lastName,
+    'cognito:groups': [user.role],
     iat,
     exp: iat + 30 * 24 * 60 * 60,
   };
@@ -62,8 +88,9 @@ export function applyDemoLoginFromUrl(
   const url = new URL(location.href);
   if (!url.searchParams.has(DEMO_LOGIN_PARAM)) return false;
 
+  resetDemoUser();
   storage.setItem('auth', JSON.stringify(createDemoTokens()));
-  storage.setItem('user', JSON.stringify(DEMO_USER));
+  storage.setItem('user', JSON.stringify(getDemoUser()));
 
   url.searchParams.delete(DEMO_LOGIN_PARAM);
   history.replaceState(history.state, '', url.pathname + url.search + url.hash);
