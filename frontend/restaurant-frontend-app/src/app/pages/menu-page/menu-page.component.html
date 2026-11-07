@@ -30,7 +30,7 @@
   <section class="content-sections">
     <div class="menu-section">
       @if (showCatalogDemoNotice) {
-        <p class="catalog-demo-notice" role="note">Local demo catalog — not live menu data.</p>
+        <p class="catalog-demo-notice" role="note">Sample menu preview — these dishes are not live restaurant offerings.</p>
       }
       <div class="filter-sort-bar">
         <div class="category-buttons">
@@ -62,7 +62,7 @@
           <button type="button" (click)="loadDishes()">Try again</button>
         </p>
       } @else if (filteredDishes.length === 0) {
-        <p>No dishes are available yet.</p>
+        <p>{{ emptyStateMessage }}</p>
       } @else {
       <div class="dish-cards">
         @for (dish of filteredDishes; track dish) {
