@@ -31,6 +31,7 @@ export class MenuPageComponent implements OnInit {
   dishes: DishListResponse[] = [];
   filteredDishes: DishListResponse[] = [];
   showCatalogDemoNotice = false;
+  loadError = false;
 
   isPreOrderEnabled = false;
   preOrderReservationId?: string;
@@ -79,6 +80,7 @@ export class MenuPageComponent implements OnInit {
 
   loadDishes(): void {
     this.showCatalogDemoNotice = false;
+    this.loadError = false;
     const category = this.selectedCategory ?? undefined;
     const sort = this.selectedSort;
 
@@ -104,6 +106,7 @@ export class MenuPageComponent implements OnInit {
       this.filteredDishes = this.dishes;
     }, () => {
       this.showCatalogDemoNotice = false;
+      this.loadError = true;
       this.dishes = [];
       this.filteredDishes = [];
       this.toast.error('Unable to load menu dishes. Please try again later.', 'Error');

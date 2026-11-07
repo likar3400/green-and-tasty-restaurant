@@ -10,7 +10,13 @@ import {
   MockHttpError,
 } from './group-orders.mock-store';
 import { GuestSessionMockStore } from './guest-session-mock-store';
-import { isDemoAuthorization } from '../auth/demo-auth';
+import {
+  getDemoProfileImage,
+  getDemoUser,
+  isDemoAuthorization,
+  updateDemoProfileImage,
+  updateDemoUser,
+} from '../auth/demo-auth';
 
 const LATENCY_MS = 400;
 export const groupOrdersMockStore = new GroupOrdersMockStore();
@@ -95,9 +101,38 @@ export const groupOrdersMockInterceptor: HttpInterceptorFn = (req, next) => {
     return respond(() => store.remove(guestSessionId));
   }
 
-  // Демо-логін (?demo): справжній API демо-токен не прийме, тож кошик у шапці показуємо порожнім.
-  if (req.method === 'GET' && path.endsWith('/orders') && isDemoAuthorization(req.headers.get('Authorization'))) {
-    return respond(() => []);
+  if (isDemoAuthorization(req.headers.get('Authorization'))) {
+    if (path.endsWith('/me') && req.method === 'GET') {
+      return respond(() => getDemoUser());
+    }
+    if (path.endsWith('/me') && req.method === 'PUT') {
+      const body = req.body as { firstName?: string; lastName?: string } | null;
+      return respond(() => {
+        if (!body?.firstName?.trim() || !body.lastName?.trim()) {
+          throw new MockHttpError(400, 'First name and last name are required.');
+        }
+        return { message: 'User information updated successfully.', user: updateDemoUser(body.firstName.trim(), body.lastName.trim()) };
+      });
+    }
+    if (
+      req.method === 'GET' &&
+      (path.endsWith('/me/profile-image') || path.endsWith(`/users/${getDemoUser().id}/profile-image`))
+    ) {
+      return respond(() => ({ presignedUrl: getDemoProfileImage() }));
+    }
+    if (path.endsWith('/me/profile-image') && req.method === 'PUT') {
+      const body = req.body as { base64Image?: string } | null;
+      return respond(() => {
+        if (!body?.base64Image?.startsWith('data:image/')) {
+          throw new MockHttpError(400, 'A valid image is required.');
+        }
+        updateDemoProfileImage(body.base64Image);
+        return 'Profile image updated successfully.';
+      });
+    }
+    if (path.endsWith('/orders') && req.method === 'GET') {
+      return respond(() => []);
+    }
   }
 
   return next(req);

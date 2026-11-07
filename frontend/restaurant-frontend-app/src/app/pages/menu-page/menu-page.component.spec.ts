@@ -74,6 +74,7 @@ describe('MenuPageComponent', () => {
 
     expect(fixture.nativeElement.querySelectorAll('app-dish-card').length).toBe(0);
     expect(fixture.nativeElement.textContent).not.toContain('Local demo catalog');
+    expect(fixture.nativeElement.textContent).toContain('No dishes are available yet.');
   });
 
   it('does not substitute fixtures for failed requests and reports the error', async () => {
@@ -81,6 +82,7 @@ describe('MenuPageComponent', () => {
 
     expect(fixture.nativeElement.querySelectorAll('app-dish-card').length).toBe(0);
     expect(fixture.nativeElement.textContent).not.toContain('Local demo catalog');
+    expect(fixture.nativeElement.querySelector('[role="alert"]').textContent).toContain('Menu dishes could not be loaded.');
     expect(toastService.error).toHaveBeenCalledOnceWith(
       'Unable to load menu dishes. Please try again later.',
       'Error',

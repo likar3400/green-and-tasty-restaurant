@@ -1,6 +1,7 @@
 import { HttpErrorResponse, HttpEvent, HttpHeaders, HttpRequest, HttpResponse } from '@angular/common/http';
 import { fakeAsync, tick } from '@angular/core/testing';
 import { Observable, of, throwError } from 'rxjs';
+import { createDemoTokens, getDemoUser, resetDemoUser } from '../auth/demo-auth';
 import { DEMO_GROUP_ID } from './group-orders.mock-store';
 import { groupOrdersMockInterceptor } from './group-orders-mock.interceptor';
 
@@ -33,6 +34,7 @@ describe('groupOrdersMockInterceptor guest flow', () => {
   beforeEach(() => {
     next.calls.reset();
     next.and.returnValue(throwError(() => new Error('Request should not reach the live API.')));
+    resetDemoUser();
   });
 
   it('creates a local session, loads the supplied menu, updates the cart and submits without forwarding', fakeAsync(() => {
@@ -77,6 +79,24 @@ describe('groupOrdersMockInterceptor guest flow', () => {
       guestName: 'Guest',
     });
     expect(nonDemo.response?.body).toBe('forwarded');
+    expect(next).toHaveBeenCalled();
+  }));
+
+  it('updates and reloads the local demo profile without sending fake credentials to the API', fakeAsync(() => {
+    const authorization = `Bearer ${createDemoTokens().idToken}`;
+    const profile = request('PUT', '/me', { firstName: 'Local', lastName: 'Profile' }, { Authorization: authorization });
+    expect(profile.response?.status).toBe(200);
+    expect(getDemoUser()).toEqual(jasmine.objectContaining({ firstName: 'Local', lastName: 'Profile' }));
+
+    const currentUser = request('GET', '/me', undefined, { Authorization: authorization });
+    expect(currentUser.response?.body).toEqual(jasmine.objectContaining({ firstName: 'Local', lastName: 'Profile' }));
+    expect(next).not.toHaveBeenCalled();
+  }));
+
+  it('keeps profile endpoints on the real API for non-demo users', fakeAsync(() => {
+    next.and.returnValue(of(new HttpResponse({ status: 200, body: 'forwarded' })));
+    const response = request('PUT', '/me', { firstName: 'Real', lastName: 'User' }, { Authorization: 'Bearer real-token' });
+    expect(response.response?.body).toBe('forwarded');
     expect(next).toHaveBeenCalled();
   }));
 });
