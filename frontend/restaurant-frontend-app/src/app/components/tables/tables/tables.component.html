@@ -15,6 +15,18 @@
               [selectedOption]="selectedFilter.location ?? undefined"
               (optionSelected)="onLocationSelected($event)"
             />
+            @if (locationsLoading) {
+              <p role="status">Loading restaurants...</p>
+            } @else if (locationsError) {
+              <p role="alert">
+                Restaurants could not be loaded.
+                <button type="button" (click)="loadLocations()">Try again</button>
+              </p>
+            } @else if (locationsLoaded && locations.length === 0) {
+              <p class="location-empty-note" role="note">
+                No restaurants are currently available to book. Try again later.
+              </p>
+            }
           </div>
 
           <div class="field">

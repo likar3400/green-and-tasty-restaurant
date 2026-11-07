@@ -9,10 +9,12 @@ import { PreOrdersService } from '@app/services/pre-orders/pre-orders.service';
 import { ToastService } from '@app/services/toast/toast.service';
 import { CATALOG_DEMO_DATA_ENABLED } from '@app/services/catalog-demo/catalog-demo.service';
 import { DEMO_DISHES } from '@app/shared/mocks/catalog/catalog-demo-data';
+import { DishType } from '@app/models/enums/dish-type.model';
 
 describe('MenuPageComponent', () => {
   let component: MenuPageComponent;
   let fixture: ComponentFixture<MenuPageComponent>;
+  let dishesService: jasmine.SpyObj<DishesService>;
   let preOrdersService: jasmine.SpyObj<PreOrdersService>;
   let toastService: jasmine.SpyObj<ToastService>;
 
@@ -20,7 +22,7 @@ describe('MenuPageComponent', () => {
     demoEnabled: boolean,
     apiResponse: Observable<DishListResponse[]> = of([]),
   ): Promise<void> {
-    const dishesService = jasmine.createSpyObj<DishesService>('DishesService', ['getDishes']);
+    dishesService = jasmine.createSpyObj<DishesService>('DishesService', ['getDishes']);
     dishesService.getDishes.and.returnValue(apiResponse);
     preOrdersService = jasmine.createSpyObj<PreOrdersService>(
       'PreOrdersService',
@@ -53,12 +55,12 @@ describe('MenuPageComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('renders fixture menu cards with an explicit local-demo notice when enabled', async () => {
+  it('renders fixture menu cards with a clear sample-preview notice when enabled', async () => {
     await createMenu(true);
 
     expect(fixture.nativeElement.querySelectorAll('app-dish-card').length).toBe(4);
     expect(fixture.nativeElement.textContent).toContain('Spring Salad');
-    expect(fixture.nativeElement.textContent).toContain('Local demo catalog');
+    expect(fixture.nativeElement.textContent).toContain('Sample menu preview');
 
     component.isPreOrderEnabled = true;
     component.preOrderReservationId = 'demo-reservation';
@@ -73,7 +75,7 @@ describe('MenuPageComponent', () => {
     await createMenu(false);
 
     expect(fixture.nativeElement.querySelectorAll('app-dish-card').length).toBe(0);
-    expect(fixture.nativeElement.textContent).not.toContain('Local demo catalog');
+    expect(fixture.nativeElement.textContent).not.toContain('Sample menu preview');
     expect(fixture.nativeElement.textContent).toContain('No dishes are available yet.');
   });
 
@@ -81,11 +83,22 @@ describe('MenuPageComponent', () => {
     await createMenu(true, throwError(() => new Error('offline')));
 
     expect(fixture.nativeElement.querySelectorAll('app-dish-card').length).toBe(0);
-    expect(fixture.nativeElement.textContent).not.toContain('Local demo catalog');
+    expect(fixture.nativeElement.textContent).not.toContain('Sample menu preview');
     expect(fixture.nativeElement.querySelector('[role="alert"]').textContent).toContain('Menu dishes could not be loaded.');
     expect(toastService.error).toHaveBeenCalledOnceWith(
       'Unable to load menu dishes. Please try again later.',
       'Error',
     );
+  });
+
+  it('explains when no dessert records are available', async () => {
+    await createMenu(false);
+    component.selectedCategory = DishType.Dessert;
+    dishesService.getDishes.and.returnValue(of([]));
+
+    component.loadDishes();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('No desserts are available yet.');
   });
 });

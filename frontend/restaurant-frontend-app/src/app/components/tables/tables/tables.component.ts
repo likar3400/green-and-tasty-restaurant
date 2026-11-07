@@ -60,6 +60,9 @@ const RESERVATION_FAILED_MESSAGE = 'Could not create the reservation. Please try
 export class TablesComponent implements OnInit {
   locations: LocationResponse[] = [];
   locationOptions: string[] = [];
+  locationsLoading = true;
+  locationsError = false;
+  locationsLoaded = false;
   dateOptions!: string[];
   timeOptions!: string[]; // Initialized later based on selected date
   selectedLocationId?: string;
@@ -79,26 +82,42 @@ export class TablesComponent implements OnInit {
       console.log('location id: ' + this.selectedLocationId);
     });
 
+    this.loadLocations();
+  }
+
+  loadLocations(): void {
+    this.locationsLoading = true;
+    this.locationsError = false;
     this.locationService
       .getLocations()
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((locations) => {
-        this.locationOptions = [
-          ALL_LOCATIONS_LABEL,
-          ...locations.map((location) => location.address),
-        ];
-        this.locations = locations;
+      .subscribe({
+        next: (locations) => {
+          this.locationOptions = [
+            ALL_LOCATIONS_LABEL,
+            ...locations.map((location) => location.address),
+          ];
+          this.locations = locations;
+          this.locationsLoaded = true;
+          this.locationsLoading = false;
 
-        if (this.selectedLocationId != null) {
-          const foundLocation = this.locations.find(
-            (location) => location.id === this.selectedLocationId
-          );
-
-          this.selectedFilter.location = foundLocation?.address || null;
-          console.log(this.selectedFilter);
-        }
+          if (this.selectedLocationId != null) {
+            const foundLocation = this.locations.find(
+              (location) => location.id === this.selectedLocationId
+            );
+            this.selectedFilter.location = foundLocation?.address || null;
+          }
+        },
+        error: () => {
+          this.locations = [];
+          this.locationOptions = [ALL_LOCATIONS_LABEL];
+          this.locationsLoaded = true;
+          this.locationsLoading = false;
+          this.locationsError = true;
+        },
       });
   }
+
   ngOnInit(): void {
     this.dateOptions = generateDateOptions();
     console.log('Date options:', this.dateOptions);

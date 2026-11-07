@@ -9,6 +9,7 @@ import { TableService } from '@app/services/table/table.service';
 import { ToastService } from '@app/services/toast/toast.service';
 import { API_BASE_URL } from '@app/shared/config/api-base-url.token';
 import { LocationResponse } from '@app/models/locations/location-response.model';
+import { LocationsService } from '@app/services/locations/locations.service';
 import { Table } from '@app/models/tables/table.model';
 import { TablesComponent } from './tables.component';
 
@@ -29,12 +30,15 @@ describe('ReservationsPageComponent', () => {
   let component: TablesComponent;
   let fixture: ComponentFixture<TablesComponent>;
   let reservationService: jasmine.SpyObj<ReservationService>;
+  let locationsService: jasmine.SpyObj<LocationsService>;
   let toastService: jasmine.SpyObj<ToastService>;
 
   beforeEach(async () => {
     reservationService = jasmine.createSpyObj<ReservationService>('ReservationService', [
       'makeReservation$',
     ]);
+    locationsService = jasmine.createSpyObj<LocationsService>('LocationsService', ['getLocations']);
+    locationsService.getLocations.and.returnValue(of([]));
     toastService = jasmine.createSpyObj<ToastService>('ToastService', ['error', 'success']);
 
     await TestBed.configureTestingModule({
@@ -44,6 +48,7 @@ describe('ReservationsPageComponent', () => {
         provideRouter([]),
         { provide: API_BASE_URL, useValue: 'https://test.api' },
         { provide: ReservationService, useValue: reservationService },
+        { provide: LocationsService, useValue: locationsService },
         { provide: ToastService, useValue: toastService },
       ],
       imports: [TablesComponent],
@@ -56,6 +61,43 @@ describe('ReservationsPageComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('explains when there are no live restaurant locations to book', () => {
+    const element: HTMLElement = fixture.nativeElement;
+
+    expect(component.locationsLoaded).toBeTrue();
+    expect(element.textContent).toContain('No restaurants are currently available to book.');
+  });
+
+  it('shows a retry action when locations fail to load and clears the error after retry', () => {
+    const location: LocationResponse = {
+      id: 'loc-1',
+      address: 'Example Street 1',
+      description: '',
+      imageUrl: '',
+      totalCapacity: 10,
+      averageOccupancy: 'N/A',
+      rating: 0,
+    };
+    locationsService.getLocations.and.returnValue(throwError(() => new Error('offline')));
+    component.loadLocations();
+    fixture.detectChanges();
+
+    expect(component.locationsError).toBeTrue();
+    expect(fixture.nativeElement.querySelector('[role="alert"]')?.textContent).toContain(
+      'Restaurants could not be loaded.'
+    );
+
+    locationsService.getLocations.and.returnValue(of([location]));
+    component.loadLocations();
+    fixture.detectChanges();
+
+    expect(component.locationsError).toBeFalse();
+    expect(component.locations).toEqual([location]);
+    expect(fixture.nativeElement.textContent).not.toContain(
+      'No restaurants are currently available to book.'
+    );
   });
 
   it('does not preselect a date, so the date placeholder is shown', () => {

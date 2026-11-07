@@ -46,6 +46,12 @@ export class MenuPageComponent implements OnInit {
   selectedCategory: DishType | null = null; // initially show all
   selectedSort: DishSort = DishSort.PopularityDescending;
 
+  get emptyStateMessage(): string {
+    return this.selectedCategory === DishType.Dessert
+      ? 'No desserts are available yet.'
+      : 'No dishes are available yet.';
+  }
+
   private readonly dishesService = inject(DishesService);
   private readonly catalogDemoService = inject(CatalogDemoService);
   private readonly route = inject(ActivatedRoute);

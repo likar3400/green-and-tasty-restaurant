@@ -89,8 +89,8 @@ describe('MainPageComponent catalog states', () => {
     expect(fixture.nativeElement.querySelectorAll('app-location-card').length).toBe(3);
     expect(fixture.nativeElement.textContent).toContain('Spring Salad');
     expect(fixture.nativeElement.textContent).toContain('Rustaveli Avenue 48');
-    expect(fixture.nativeElement.textContent).toContain('Local demo catalog');
-    expect(fixture.nativeElement.textContent).toContain('Local demo locations');
+    expect(fixture.nativeElement.textContent).toContain('Sample menu preview');
+    expect(fixture.nativeElement.textContent).toContain('not available for booking');
     expect(fixture.nativeElement.querySelector('app-location-card a[aria-disabled="true"]')).not.toBeNull();
   });
 });
